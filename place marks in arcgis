@@ -1,0 +1,26 @@
+import arcpy
+def obtain_mark_lat_lon(mark_coordinate_dir):
+    from openpyxl import Workbook
+    from openpyxl import load_workbook
+    wb_mark=load_workbook(mark_coordinate_dir)
+    ws_mark=wb_mark.active
+    lat_col=3
+    lon_col=2
+    mark_lat_lon=[]
+    for sheet_row in range(146,290):
+        print(sheet_row)
+        # start from 2, title row adding 1, third column is lat,sec column is lon
+
+        lat=ws_mark.cell(column=lat_col,row=sheet_row).value
+        lon=ws_mark.cell(column=lon_col,row=sheet_row).value
+        mark_lat_lon.append([lat,lon])
+    return mark_lat_lon
+
+mark_coordinate_addr="I:\\ImagerySets\\USDA mission\\MarkersCoordinatesWGS-84.xlsx"
+mark_lat_lon=obtain_mark_lat_lon(mark_coordinate_addr)
+outpath="I:/ImagerySets/USDA mission/onion-2016-data-blue region/georeference-rgb-nir-tir"
+newfc="blue_flag.shp" 
+arcpy.CreateFeatureclass_management(outpath, newfc, "Point")
+cursor=arcpy.da.InsertCursor(outpath+"/"+newfc, ["SHAPE@"])
+for point in mark_lat_lon:
+    cursor.insertRow([arcpy.Point(point[1],point[0])])
